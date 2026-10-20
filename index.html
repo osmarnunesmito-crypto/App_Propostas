@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><script src="https://myhub.ia.br/canvas-vendor/tailwind.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proposta Master | Gerador Comercial</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --violet-900: #1a0b2e;
+      --violet-800: #2d1b4e;
+      --violet-700: #4a148c;
+      --violet-600: #6a1b9a;
+      --gold-400: #ffd700;
+      --gold-500: #ffb300;
+      --gold-600: #ff8f00;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body {
+      background: linear-gradient(135deg, var(--violet-900) 0%, var(--violet-800) 50%, #0f0518 100%);
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .gold-text {
+      background: linear-gradient(90deg, #fff 0%, var(--gold-400) 50%, var(--gold-500) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .glass {
+      background: rgba(45, 27, 78, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 215, 0, 0.15);
+    }
+    .card-hover { transition: all 0.3s ease; }
+    .card-hover:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(255, 215, 0, 0.2);
+      border-color: rgba(255, 215, 0, 0.5);
+    }
+    .btn-gold {
+      background: linear-gradient(90deg, var(--gold-400), var(--gold-500));
+      color: var(--violet-900);
+      font-weight: 700;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-gold:hover { transform: scale(1.02); box-shadow: 0 5px 25px rgba(255, 179, 0, 0.4); }
+    .btn-violet {
+      background: linear-gradient(90deg, var(--violet-700), var(--violet-600));
+      color: white;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-violet:hover { transform: scale(1.02); box-shadow: 0 5px 25px rgba(106, 27, 154, 0.5); }
+    .btn-outline {
+      background: transparent;
+      color: var(--gold-400);
+      border: 1px solid rgba(255, 215, 0, 0.4);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .btn-outline:hover { background: rgba(255, 215, 0, 0.1); }
+    .sidebar {
+      background: rgba(26, 11, 46, 0.95);
+      border-right: 1px solid rgba(255, 215, 0, 0.2);
+    }
+    .input-field {
+      background: rgba(26, 11, 46, 0.7);
+      border: 1px solid rgba(255, 215, 0, 0.25);
+      color: white;
+      transition: all 0.3s;
+      width: 100%;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: var(--gold-400);
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+    }
+    .input-field option { background: var(--violet-900); color: white; }
+    .status-pill {
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+    .pulse-dot {
+      width: 10px; height: 10px;
+      background: var(--gold-400);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+      display: inline-block;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+      50% { opacity: 0.7; box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+    }
+    .fade-in { animation: fadeIn 0.4s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .hide-scrollbar::-webkit-scrollbar { width: 6px; }
+    .hide-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+    .hide-scrollbar::-webkit-scrollbar-thumb { background: var(--gold-500); border-radius: 3px; }
+    .view.hidden { display: none !important; }
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100;
+      display: flex; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-backdrop.hidden { display: none !important; }
+    .modal-content { width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; border-radius: 1rem; }
+    .item-row-app { display: grid; grid-template-columns: 1fr 80px 120px 40px; gap: 0.5rem; align-items: end; margin-bottom: 0.75rem; }
+    @media (max-width: 640px) { .item-row-app { grid-template-columns: 1fr 60px 100px 36px; } }
+    
+    /* Preview / Print styles */
+    #previewContent { background: #f3f4f6; }
+    .prop-page {
+      width: 210mm;
+      min-height: 277mm;
+      margin: 0 auto 1rem;
+      background: white;
+      position: relative;
+      overflow: hidden;
+      color: #1f2937;
+      font-size: 11pt;
+      line-height: 1.5;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .prop-cover {
+      height: 62mm;
+      background: linear-gradient(135deg, var(--prop-brand-dark, #2d1b4e) 0%, var(--prop-brand, #4a148c) 100%);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 10mm 15mm;
+      color: white;
+    }
+    .prop-cover::after {
+      content: ''; position: absolute; right: 0; top: 0; width: 45%; height: 100%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 100%);
+      clip-path: polygon(30% 0, 100% 0, 100% 100%, 0% 100%);
+    }
+    .prop-logo-chip {
+      width: 62px; height: 62px; background: white; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      position: relative; z-index: 2;
+    }
+    .prop-logo-chip img { max-height: 46px; max-width: 130px; object-fit: contain; }
+    .prop-fallback-logo { display: none; font-family: 'Playfair Display', serif; font-size: 0.85rem; font-weight: 700; color: var(--prop-brand, #4a148c); text-align: center; line-height: 1.1; padding: 4px; }
+    .prop-cover h1 { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; line-height: 1.1; margin-bottom: 8px; position: relative; z-index: 2; }
+    .prop-cover .subtitle { font-size: 0.95rem; opacity: 0.92; max-width: 80%; position: relative; z-index: 2; }
+    .prop-gold-rule {
+      width: 90px; height: 3px;
+      background: linear-gradient(90deg, var(--prop-gold, #ffd700), #fff, var(--prop-gold, #ffd700));
+      margin: 10px 0; position: relative; z-index: 2;
+    }
+    .prop-content { padding: 8mm 15mm 28mm 15mm; }
+    .prop-section { margin-bottom: 6mm; page-break-inside: avoid; }
+    .prop-section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; page-break-after: avoid; }
+    .prop-section-number {
+      width: 28px; height: 28px; background: var(--prop-brand, #4a148c); color: white;
+      border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.75rem; flex-shrink: 0;
+    }
+    .prop-section-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--prop-brand-dark, #2d1b4e); }
+    .prop-client-box { background: #f9fafb; border-left: 3px solid var(--prop-gold, #ffd700); padding: 10px 14px; border-radius: 0 8px 8px 0; margin-bottom: 3mm; }
+    .prop-client-box p { margin: 2px 0; color: #1f2937; font-size: 10.5pt; }
+    .prop-client-box strong { color: var(--prop-brand-dark, #2d1b4e); }
+    .prop-text { color: #1f2937; text-align: justify; font-size: 10.5pt; }
+    .prop-table { width: 100%; border-collapse: collapse; margin-top: 4px; page-break-inside: auto; }
+    .prop-table thead { display: table-header-group; }
+    .prop-table tr { page-break-inside: avoid; page-break-after: auto; }
+    .prop-table th { background: var(--prop-brand, #4a148c); color: white; padding: 8px 10px; text-align: left; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .prop-table td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; font-size: 10pt; vertical-align: top; }
+    .prop-td-item { width: 8%; color: #374151; }
+    .prop-td-desc { width: 46%; color: #111827; font-weight: 500; }
+    .prop-td-qtd { width: 10%; text-align: center; color: #374151; }
+    .prop-td-valor { width: 16%; text-align: right; color: #374151; }
+    .prop-td-total { width: 20%; text-align: right; color: #111827; font-weight: 600; }
+    .prop-total-row { background: linear-gradient(90deg, var(--prop-brand-dark, #2d1b4e), var(--prop-brand, #4a148c)); color: white; font-size: 1rem; font-weight: 700; }
+    .prop-total-row td { border: none; padding: 10px; }
+    .prop-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .prop-info-card { background: #f9fafb; padding: 10px; border-radius: 8px; border-top: 3px solid var(--prop-gold, #ffd700); page-break-inside: avoid; }
+    .prop-info-card h4 { color: var(--prop-brand-dark, #2d1b4e); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+    .prop-info-card p { color: #1f2937; font-weight: 600; font-size: 10.5pt; }
+    .prop-obs { margin-top: 10px; background: #f9fafb; padding: 10px; border-radius: 8px; page-break-inside: avoid; }
+    .prop-obs h4 { color: var(--prop-brand-dark, #2d1b4e); font-size: 0.65rem; text-transform: uppercase; margin-bottom: 3px; }
+    .prop-obs p { color: #1f2937; font-size: 10.5pt; }
+    .prop-footer {
+      background: var(--prop-brand-dark, #2d1b4e); color: white; padding: 8mm 15mm;
+      text-align: center; font-size: 9pt; position: absolute; bottom: 0; left: 0; right: 0;
+    }
+    .prop-footer strong { color: var(--prop-gold, #ffd700); }
+    .prop-print-btn {
+      position: fixed; bottom: 20px; right: 20px; background: var(--gold-500);
+      color: var(--violet-900); padding: 12px 24px; border-radius: 50px;
+      font-weight: 700; border: none; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 1000;
+    }
+    @media print {
+      body { background: white !important; margin: 0; }
+      .prop-page { width: 210mm; min-height: auto; height: auto; box-shadow: none; margin: 0; overflow: visible; page-break-after: always; }
+      .prop-page:last-child { page-break-after: auto; }
+      .prop-print-btn, .modal-close-btn { display: none !important; }
+      @page { size: A4; margin: 6mm; }
+      .prop-cover { height: 58mm; page-break-after: avoid; }
+      .prop-content { padding: 6mm 10mm 24mm 10mm; }
+      .prop-section { page-break-inside: avoid; }
+      .prop-table { page-break-inside: auto; }
+      .prop-table tr { page-break-inside: avoid; }
+      .prop-footer { position: fixed; bottom: 0; left: 0; right: 0; }
+    }
+    @media screen and (max-width: 900px) {
+      .prop-page { width: 100%; }
+      .prop-cover { height: auto; padding: 25px 20px; }
+      .prop-cover h1 { font-size: 1.6rem; }
+      .prop-info-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="overflow-x-hidden">
+
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar fixed md:relative z-40 w-72 h-screen transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+      <div class="p-6 border-b border-yellow-400/20">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
+            <i class="fas fa-file-signature text-violet-900 text-xl"></i>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold gold-text">Proposta Master</h1>
+            <p class="text-xs text-yellow-400/70">Gestão Inteligente</p>
+          </div>
+        </div>
+      </div>
+      <nav class="p-4 space-y-2">
+        <button onclick="router('dashboard')" class="nav-item w-full text-left px-4 py-3 rounded-xl hover:bg-white/5 flex items-center gap-3 text-yellow-100">
+          <i class="fas fa-chart-pie text-yellow-400"></i> Dashboard
+        </button>
+        <button onclick="router('propostas')" class="nav-item w-full text-left px-4 py-3 rounded-xl hover:bg-white/5 flex items-center gap-3 text-yellow-100">
+          <i class="fas fa-file-invoice-dollar text-yellow-400"></i> Propostas
+        </button>
+        <button onclick="router('clientes')" class="nav-item w-full text-left px-4 py-3 rounded-xl hover:bg-white/5 flex items-center gap-3 text-yellow-100">
+          <i class="fas fa-users text-yellow-400"></i> Clientes
+        </button>
+        <button onclick="router('nova-proposta')" class="nav-item w-full text-left px-4 py-3 rounded-xl hover:bg-white/5 flex items-center gap-3 text-yellow-100">
+          <i class="fas fa-plus-circle text-yellow-400"></i> Nova Proposta
+        </button>
+        <button onclick="router('config')" class="nav-item w-full text-left px-4 py-3 rounded-xl hover:bg-white/5 flex items-center gap-3 text-yellow-100">
+          <i class="fas fa-cog text-yellow-400"></i> Configurações
+        </button>
+        <button onclick="router('ia')" class="nav-item w-full text-left px-4 py-3 rounded-xl hover:bg-white/5 flex items-center gap-3 text-yellow-100">
+          <i class="fas fa-robot text-yellow-400"></i> Assistente IA
+        </button>
+      </nav>
+      <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-yellow-400/20">
+        <div class="glass rounded-xl p-3">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="pulse-dot"></span>
+            <span class="text-xs text-yellow-400 font-semibold">IA Ativa</span>
+          </div>
+          <p class="text-xs text-white/60">Sugestões inteligentes disponíveis</p>
+        </div>
+      </div>
+    </aside>
+
+    <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden"></div>
+
+    <main class="flex-1 min-h-screen">
+      <header class="glass sticky top-0 z-20 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <button onclick="toggleSidebar()" class="md:hidden text-yellow-400 text-xl">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h2 id="page-title" class="text-2xl font-bold gold-text">Dashboard</h2>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="hidden sm:inline text-sm text-white/70" id="current-date"></span>
+          <button onclick="router('nova-proposta')" class="btn-gold px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+            <i class="fas fa-plus"></i> <span class="hidden sm:inline">Nova Proposta</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="p-6 max-w-7xl mx-auto">
+
+        <!-- Dashboard -->
+        <section id="dashboard" class="view fade-in">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="glass rounded-2xl p-6 card-hover">
+              <div class="flex justify-between items-start mb-4">
+                <div class="p-3 rounded-xl bg-violet-700/50"><i class="fas fa-file-alt text-yellow-400 text-xl"></i></div>
+                <span class="status-pill bg-yellow-400/20 text-yellow-300">Total</span>
+              </div>
+              <h3 class="text-3xl font-bold" id="dash-total">0</h3>
+              <p class="text-sm text-white/60 mt-1">Propostas cadastradas</p>
+            </div>
+            <div class="glass rounded-2xl p-6 card-hover">
+              <div class="flex justify-between items-start mb-4">
+                <div class="p-3 rounded-xl bg-violet-700/50"><i class="fas fa-clock text-yellow-400 text-xl"></i></div>
+                <span class="status-pill bg-blue-400/20 text-blue-300">Pendentes</span>
+              </div>
+              <h3 class="text-3xl font-bold" id="dash-pendentes">0</h3>
+              <p class="text-sm text-white/60 mt-1">Aguardando cliente</p>
+            </div>
+            <div class="glass rounded-2xl p-6 card-hover">
+              <div class="flex justify-between items-start mb-4">
+                <div class="p-3 rounded-xl bg-violet-700/50"><i class="fas fa-check-circle text-yellow-400 text-xl"></i></div>
+                <span class="status-pill bg-green-400/20 text-green-300">Aprovadas</span>
+              </div>
+              <h3 class="text-3xl font-bold" id="dash-aprovadas">0</h3>
+              <p class="text-sm text-white/60 mt-1">Propostas aceitas</p>
+            </div>
+            <div class="glass rounded-2xl p-6 card-hover">
+              <div class="flex justify-between items-start mb-4">
+                <div class="p-3 rounded-xl bg-violet-700/50"><i class="fas fa-coins text-yellow-400 text-xl"></i></div>
+                <span class="status-pill bg-purple-400/20 text-purple-300">Valor</span>
+              </div>
+              <h3 class="text-3xl font-bold gold-text" id="dash-valor">R$ 0,00</h3>
+              <p class="text-sm text-white/60 mt-1">Em propostas aprovadas</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 glass rounded-2xl p-6">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-yellow-400"><i class="fas fa-fire mr-2"></i>Propostas Recentes</h3>
+                <button onclick="router('propostas')" class="text-sm text-yellow-400 hover:underline">Ver todas</button>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-yellow-400/20 text-yellow-100/70">
+                      <th class="text-left py-3">Cliente</th>
+                      <th class="text-left py-3">Serviço</th>
+                      <th class="text-left py-3">Status</th>
+                      <th class="text-right py-3">Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dash-recentes"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="glass rounded-2xl p-6">
+              <h3 class="text-lg font-bold text-yellow-400 mb-4"><i class="fas fa-lightbulb mr-2"></i>Dica do Dia</h3>
+              <p class="text-white/80 text-sm leading-relaxed" id="dica-dia">
+                Propostas com objetivos claros e prazos bem definidos têm 40% mais chance de aprovação. Use o assistente IA para revisar seus textos.
+              </p>
+              <button onclick="router('ia')" class="btn-violet w-full mt-4 py-2 rounded-lg text-sm">
+                <i class="fas fa-robot mr-2"></i>Usar Assistente IA
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Nova Proposta -->
+        <section id="nova-proposta" class="view hidden fade-in">
+          <div class="glass rounded-2xl p-6 md:p-8">
+            <h3 class="text-xl font-bold text-yellow-400 mb-6"><i class="fas fa-edit mr-2"></i>Dados da Proposta</h3>
+            <form id="form-proposta" onsubmit="salvarProposta(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="md:col-span-2">
+                <label class="block text-sm text-yellow-100 mb-2">Título da Proposta *</label>
+                <input type="text" id="p-titulo" required class="input-field" placeholder="Ex: Consultoria em Gestão Comercial B2B">
+              </div>
+              <div>
+                <label class="block text-sm text-yellow-100 mb-2">Cliente *</label>
+                <select id="p-cliente" required class="input-field">
+                  <option value="">Selecione um cliente</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm text-yellow-100 mb-2">Tipo de Documento *</label>
+                <select id="p-tipo" required class="input-field">
+                  <option value="Proposta Comercial">Proposta Comercial</option>
+                  <option value="Orçamento">Orçamento</option>
+                  <option value="Apresentação de Serviços">Apresentação de Serviços</option>
+                  <option value="Plano/Pacote">Plano/Pacote</option>
+                  <option value="Carta de Apresentação">Carta de Apresentação</option>
+                  <option value="Escopo de Trabalho">Escopo de Trabalho</option>
+                  <option value="Recibo Simples">Recibo Simples</option>
+                  <option value="Tabela de Preços">Tabela de Preços</option>
+                  <option value="Carta de Agradecimento">Carta de Agradecimento</option>
+                  <option value="One-Pager de Portfólio">One-Pager de Portfólio</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm text-yellow-100 mb-2">Serviço Principal *</label>
+                <select id="p-servico" required class="input-field">
+                  <option value="">Selecione...</option>
+                  <option value="Consultoria Comercial">Consultoria Comercial</option>
+                  <option value="Treinamento e Capacitação">Treinamento e Capacitação</option>
+                  <option value="Importação e Logística">Importação e Logística</option>
+                  <option value="Dashboards e BI">Dashboards e BI</option>
+                  <option value="Pricing e Formação de Preços">Pricing e Formação de Preços</option>
+                  <option value="Gestão de Grandes Contas">Gestão de Grandes Contas</option>
+                  <option value="Pneus e Autopeças">Pneus e Autopeças</option>
+                  <option value="Projeto Personalizado">Projeto Personalizado</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm text-yellow-100 mb-2">Prazo de Entrega *</label>
+                <select id="p-prazo" required class="input-field">
+                  <option value="">Selecione...</option>
+                  <option value="5 dias úteis">5 dias úteis</option>
+                  <option value="10 dias úteis">10 dias úteis</option>
+                  <option value="15 dias úteis">15 dias úteis</option>
+                  <option value="30 dias úteis">30 dias úteis</option>
+                  <option value="45 dias úteis">45 dias úteis</option>
+                  <option value="60 dias úteis">60 dias úteis</option>
+                  <option value="A combinar">A combinar</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm text-yellow-100 mb-2">Condição de Pagamento *</label>
+                <select id="p-pagamento" required class="input-field">
+                  <option value="">Selecione...</option>
+                  <option value="À vista">À vista</option>
+                  <option value="30 dias">30 dias</option>
+                  <option value="30/60 dias">30/60 dias</option>
+                  <option value="30/60/90 dias">30/60/90 dias</option>
+                  <option value="50% entrada + 50% entrega">50% entrada + 50% entrega</option>
+                  <option value="A combinar">A combinar</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm text-yellow-100 mb-2">Validade da Proposta *</label>
+                <select id="p-validade" required class="input-field">
+                  <option value="7 dias">7 dias</option>
+                  <option value="15 dias">15 dias</option>
+                  <option value="30 dias" selected>30 dias</option>
+                  <option value="45 dias">45 dias</option>
+                  <option value="60 dias">60 dias</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm text-yellow-100 mb-2">Status *</label>
+                <select id="p-status" required class="input-field">
+                  <option value="Pendente">Pendente</option>
+                  <option value="Enviada">Enviada</option>
+                  <option value="Em Negociação">Em Negociação</option>
+                  <option value="Aprovada">Aprovada</option>
+                  <option value="Recusada">Recusada</option>
+                </select>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm text-yellow-100 mb-2">Abertura / Apresentação</label>
+                <textarea id="p-abertura" rows="3" class="input-field" placeholder="Texto de apresentação da proposta..."></textarea>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm text-yellow-100 mb-2">Itens / Serviços *</label>
+                <div id="itens-container" class="space-y-3"></div>
+                <button type="button" onclick="adicionarItem()" class="btn-outline mt-3 px-4 py-2 rounded-lg text-sm">
+                  <i class="fas fa-plus mr-2"></i>Adicionar Item
+                </button>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm text-yellow-100 mb-2">Descrição / Escopo</label>
+                <textarea id="p-descricao" rows="3" class="input-field" placeholder="Descreva o escopo, entregáveis e diferenciais da proposta..."></textarea>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm text-yellow-100 mb-2">Observações Internas</label>
+                <textarea id="p-obs" rows="2" class="input-field" placeholder="Notas para a equipe (não aparecem no documento)..."></textarea>
+              </div>
+              <div class="md:col-span-2 flex flex-wrap gap-3 pt-4 border-t border-yellow-400/20">
+                <button type="submit" class="btn-gold px-6 py-3 rounded-xl flex items-center gap-2">
+                  <i class="fas fa-save"></i> Salvar Proposta
+                </button>
+                <button type="button" onclick="limparFormProposta()" class="btn-violet px-6 py-3 rounded-xl flex items-center gap-2">
+                  <i class="fas fa-eraser"></i> Limpar
+                </button>
+                <button type="button" onclick="previewFromForm()" class="btn-violet px-6 py-3 rounded-xl flex items-center gap-2">
+                  <i class="fas fa-eye"></i> Prévia / PDF
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Lista de Propostas -->
+        <section id="propostas" class="view hidden fade-in">
+          <div class="glass rounded-2xl p-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+              <div class="relative flex-1 max-w-md">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-yellow-400/60"></i>
+                <input type="text" id="busca-proposta" onkeyup="filtrarPropostas()" class="input-field pl-12" placeholder="Buscar por cliente, serviço ou status...">
+              </div>
+              <button onclick="router('nova-proposta')" class="btn-gold px-5 py-2 rounded-lg text-sm">
+                <i class="fas fa-plus mr-2"></i>Nova Proposta
+              </button>
+            </div>
+            <div class="overflow-x-auto hide-scrollbar">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-yellow-400/30 text-yellow-100">
+                    <th class="text-left py-3 px-2">Código</th>
+                    <th class="text-left py-3 px-2">Cliente</th>
+                    <th class="text-left py-3 px-2">Documento</th>
+                    <th class="text-left py-3 px-2">Status</th>
+                    <th class="text-right py-3 px-2">Valor</th>
+                    <th class="text-center py-3 px-2">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="lista-propostas"></tbody>
+              </table>
+            </div>
+            <div id="empty-propostas" class="text-center py-12 hidden">
+              <i class="fas fa-folder-open text-5xl text-yellow-400/30 mb-3"></i>
+              <p class="text-white/60">Nenhuma proposta encontrada</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Clientes -->
+        <section id="clientes" class="view hidden fade-in">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1 glass rounded-2xl p-6">
+              <h3 class="text-lg font-bold text-yellow-400 mb-4"><i class="fas fa-user-plus mr-2"></i>Cadastrar Cliente</h3>
+              <form id="form-cliente" onsubmit="salvarCliente(event)" class="space-y-4">
+                <input type="hidden" id="c-id">
+                <div>
+                  <label class="block text-sm text-yellow-100 mb-2">Nome/Razão Social *</label>
+                  <input type="text" id="c-nome" required class="input-field" placeholder="Nome completo">
+                </div>
+                <div>
+                  <label class="block text-sm text-yellow-100 mb-2">Contato / Responsável</label>
+                  <input type="text" id="c-contato" class="input-field" placeholder="Ex: Wagner">
+                </div>
+                <div>
+                  <label class="block text-sm text-yellow-100 mb-2">CNPJ/CPF</label>
+                  <input type="text" id="c-doc" class="input-field" placeholder="00.000.000/0000-00">
+                </div>
+                <div>
+                  <label class="block text-sm text-yellow-100 mb-2">Telefone / WhatsApp</label>
+                  <input type="tel" id="c-telefone" class="input-field" placeholder="(92) 99999-9999">
+                </div>
+                <div>
+                  <label class="block text-sm text-yellow-100 mb-2">E-mail</label>
+                  <input type="email" id="c-email" class="input-field" placeholder="cliente@email.com">
+                </div>
+                <div>
+                  <label class="block text-sm text-yellow-100 mb-2">Cidade/UF</label>
+                  <input type="text" id="c-cidade" class="input-field" placeholder="Manaus/AM">
+                </div>
+                <div>
+                  <label class="block text-sm text-yellow-100 mb-2">Segmento</label>
+                  <select id="c-segmento" class="input-field">
+                    <option value="">Selecione...</option>
+                    <option value="Pneus/Auto">Pneus/Auto</option>
+                    <option value="Comércio">Comércio</option>
+                    <option value="Indústria">Indústria</option>
+                    <option value="Serviços">Serviços</option>
+                    <option value="Logística">Logística</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn-gold w-full py-3 rounded-xl">
+                  <i class="fas fa-save mr-2"></i>Salvar Cliente
+                </button>
+              </form>
+            </div>
+            <div class="lg:col-span-2 glass rounded-2xl p-6">
+              <h3 class="text-lg font-bold text-yellow-400 mb-4"><i class="fas fa-users mr-2"></i>Clientes Cadastrados</h3>
+              <div class="overflow-x-auto hide-scrollbar">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-yellow-400/30 text-yellow-100">
+                      <th class="text-left py-3">Nome</th>
+                      <th class="text-left py-3">Cidade</th>
+                      <th class="text-left py-3">Segmento</th>
+                      <th class="text-center py-3">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="lista-clientes"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Configurações -->
+        <section id="config" class="view hidden fade-in">
+          <div class="glass rounded-2xl p-6 md:p-8 max-w-3xl mx-auto">
+            <h3 class="text-xl font-bold text-yellow-400 mb-6"><i class="fas fa-cog mr-2"></i>Configurações da Empresa</h3>
+            <form id="form-config" onsubmit="salvarConfig(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="md:col-span-2">
+                <label class="block text-sm text-yellow-100 mb-2">Nome do Negócio *</label>
+                <input type="text" id="cfg-nome" required class="input-field" placeholder="Ex: Nunes Representações">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm text-yellow-100 mb-2">Link do Logo (URL da imagem)</label>
+                <input type="url" id="cfg-logo" class="input-field" placeholder="https://...">
+              </div>
+              <div>
+                <label class="block text-sm text-yellow-100 mb-2">Cor Principal (HEX) *</label>
+                <div class="flex gap-2">
+                  <input type="color" id="cfg-cor-picker" class="w-12 h-11 rounded-lg cursor-pointer border border-yellow-400/30">
+                  <input type="text" id="cfg-cor" required class="input-field flex-1" placeholder="#4a148c">
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm text-yellow-100 mb-2">Cor de Destaque/Dourado *</label>
+                <div class="flex gap-2">
+                  <input type="color" id="cfg-cor2-picker" class="w-12 h-11 rounded-lg cursor-pointer border border-yellow-400/30">
+                  <input type="text" id="cfg-cor2" required class="input-field flex-1" placeholder="#ffd700">
+                </div>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm text-yellow-100 mb-2">Contato para Rodapé *</label>
+                <input type="text" id="cfg-contato" required class="input-field" placeholder="Nome | Telefone | E-mail | Cidade">
+              </div>
+              <div class="md:col-span-2">
+                <button type="submit" class="btn-gold w-full py-3 rounded-xl">
+                  <i class="fas fa-save mr-2"></i>Salvar Configurações
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Assistente IA -->
+        <section id="ia" class="view hidden fade-in">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="glass rounded-2xl p-6">
+              <h3 class="text-lg font-bold text-yellow-400 mb-4"><i class="fas fa-robot mr-2"></i>Assistente IA - Análise de Proposta</h3>
+              <p class="text-sm text-white/70 mb-4">Selecione uma proposta para receber sugestões de melhoria, precificação e argumentação comercial.</p>
+              <select id="ia-proposta" class="input-field mb-4">
+                <option value="">Selecione uma proposta</option>
+              </select>
+              <button onclick="analisarPropostaIA()" class="btn-gold w-full py-3 rounded-xl">
+                <i class="fas fa-brain mr-2"></i>Analisar com IA
+              </button>
+              <div id="ia-resultado" class="mt-6 space-y-3 hidden"></div>
+            </div>
+            <div class="glass rounded-2xl p-6">
+              <h3 class="text-lg font-bold text-yellow-400 mb-4"><i class="fas fa-magic mr-2"></i>Gerar Texto com IA</h3>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm text-yellow-100 mb-2">Tipo de texto</label>
+                  <select id="ia-tipo-texto" class="input-field">
+                    <option value="apresentacao">E-mail de Apresentação</option>
+                    <option value="followup">Follow-up de Proposta</option>
+                    <option value="objecao">Resposta a Objeção de Preço</option>
+                    <option value="whatsapp">Mensagem para WhatsApp</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm text-yellow-100 mb-2">Nome do cliente</label>
+                  <input type="text" id="ia-cliente-nome" class="input-field" placeholder="Nome do cliente">
+                </div>
+                <div>
+                  <label class="block text-sm text-yellow-100 mb-2">Serviço/produto</label>
+                  <input type="text" id="ia-servico-nome" class="input-field" placeholder="Ex: Consultoria Comercial">
+                </div>
+                <button onclick="gerarTextoIA()" class="btn-violet w-full py-3 rounded-xl">
+                  <i class="fas fa-pen-fancy mr-2"></i>Gerar Texto
+                </button>
+                <div id="ia-texto-resultado" class="hidden mt-4 p-4 rounded-xl bg-violet-900/50 border border-yellow-400/20 text-sm leading-relaxed"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Preview -->
+  <div id="previewModal" class="modal-backdrop hidden">
+    <div class="modal-content relative">
+      <button onclick="fecharPreview()" class="modal-close-btn absolute top-3 right-3 z-10 w-10 h-10 rounded-full bg-violet-900 text-yellow-400 border border-yellow-400/30 flex items-center justify-center hover:bg-violet-800">
+        <i class="fas fa-times"></i>
+      </button>
+      <div id="previewContent"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 transition-transform duration-300">
+    <div class="glass rounded-xl px-6 py-4 flex items-center gap-3 border-l-4 border-yellow-400">
+      <i id="toast-icon" class="fas fa-check-circle text-yellow-400"></i>
+      <span id="toast-message">Mensagem</span>
+    </div>
+  </div>
+
+  <script>
+    // ===================== STORAGE =====================
+    const AppStorage = {
+      _memory: {},
+      _useLS: (() => { try { localStorage.setItem('__test__', '1'); localStorage.removeItem('__test__'); return true; } catch(e) { return false; } })(),
+      set(key, value) {
+        const data = JSON.stringify(value);
+        if (this._useLS) localStorage.setItem(key, data);
+        else this._memory[key] = data;
+      },
+      get(key, defaultValue = null) {
+        const raw = this._useLS ? localStorage.getItem(key) : this._memory[key];
+        if (!raw) return defaultValue;
+        try { return JSON.parse(raw); } catch(e) { return defaultValue; }
+      },
+      remove(key) {
+        if (this._useLS) localStorage.removeItem(key);
+        else delete this._memory[key];
+      }
+    };
+
+    // ===================== ESTADO =====================
+    let config = AppStorage.get('pm_config', {
+      nome: 'Nunes Representações',
+      logo: '',
+      cor: '#4a148c',
+      cor2: '#ffd700',
+      contato: 'Osmar Nunes | (92) 99422-5758 | Manaus/AM'
+    });
+    let clientes = AppStorage.get('pm_clientes', [
+      { id: 'c1', nome: 'Pneu Forte Distribuidora', contato: 'Wagner', doc: '12.345.678/0001-90', telefone: '(92) 3333-4444', email: 'contato@pneuforte.com', cidade: 'Manaus/AM', segmento: 'Pneus/Auto' },
+      { id: 'c2', nome: 'Delta Pneumáticos', contato: 'Ricardo', doc: '98.765.432/0001-10', telefone: '(92) 98765-4321', email: 'comercial@deltapneus.com', cidade: 'Manaus/AM', segmento: 'Pneus/Auto' }
+    ]);
+    let propostas = AppStorage.get('pm_propostas', [
+      { id: 'p1', titulo: 'Dashboard de KPIs Comerciais', clienteId: 'c1', tipo: 'Proposta Comercial', servico: 'Dashboards e BI', prazo: '15 dias úteis', pagamento: '30/60 dias', validade: '30 dias', status: 'Aprovada', abertura: 'Apresentamos nossa proposta premium para transformar seus indicadores comerciais em decisões rápidas.', descricao: 'Criação de dashboards em Power BI.', obs: '', data: new Date().toISOString(), items: [{descricao:'Dashboard de Vendas',qtd:1,valor:8500},{descricao:'Dashboard de Estoque',qtd:1,valor:4000}] },
+      { id: 'p2', titulo: 'Treinamento de Equipe de Vendas', clienteId: 'c2', tipo: 'Orçamento', servico: 'Treinamento e Capacitação', prazo: '10 dias úteis', pagamento: 'À vista', validade: '15 dias', status: 'Pendente', abertura: 'Workshop focado em técnicas de negociação B2B.', descricao: 'Treinamento presencial de 16h.', obs: '', data: new Date().toISOString(), items: [{descricao:'Workshop Negociação B2B',qtd:1,valor:8500}] }
+    ]);
+    let editandoPropostaId = null;
+    let itemCount = 0;
+
+    // ===================== UTILS =====================
+    const formatCurrency = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
+    const formatDate = (d) => new Date(d || new Date()).toLocaleDateString('pt-BR');
+    const slug = () => Math.random().toString(36).substr(2, 9);
+    const getCliente = (id) => clientes.find(c => c.id === id) || { nome: 'Cliente não encontrado' };
+    const parseMoney = (v) => parseFloat(String(v).replace(/\./g,'').replace(',','.')) || 0;
+
+    function showToast(msg, icon='fa-check-circle') {
+      const t = document.getElementById('toast');
+      document.getElementById('toast-message').textContent = msg;
+      document.getElementById('toast-icon').className = `fas ${icon} text-yellow-400`;
+      t.classList.remove('translate-y-24');
+      setTimeout(() => t.classList.add('translate-y-24'), 3000);
+    }
+
+    function saveAll() {
+      AppStorage.set('pm_config', config);
+      AppStorage.set('pm_clientes', clientes);
+      AppStorage.set('pm_propostas', propostas);
+    }
+
+    function darken(hex, percent=30) {
+      hex = hex.replace('#','');
+      if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+      const num = parseInt(hex, 16);
+      let r = (num >> 16) & 0xFF;
+      let g = (num >> 8) & 0xFF;
+      let b = num & 0xFF;
+      r = Math.max(0, Math.floor(r * (1 - percent/100)));
+      g = Math.max(0, Math.floor(g * (1 - percent/100)));
+      b = Math.max(0, Math.floor(b * (1 - percent/100)));
+      return '#' + ((1<<24) + (r<<16) + (g<<8) + b).toString(16).slice(1);
+    }
+
+    // ===================== NAVEGAÇÃO =====================
+    function router(view) {
+      document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
+      document.getElementById(view).classList.remove('hidden');
+      document.getElementById('page-title').textContent = {
+        'dashboard': 'Dashboard',
+        'propostas': 'Propostas',
+        'clientes': 'Clientes',
+        'nova-proposta': editandoPropostaId ? 'Editar Proposta' : 'Nova Proposta',
+        'config': 'Configurações',
+        'ia': 'Assistente IA'
+      }[view];
+      if (window.innerWidth < 768) toggleSidebar(false);
+      if (view === 'dashboard') atualizarDashboard();
+      if (view === 'propostas') renderPropostas();
+      if (view === 'clientes') renderClientes();
+      if (view === 'nova-proposta') {
+        carregarSelectClientes();
+        if (!editandoPropostaId) limparFormProposta();
+      }
+      if (view === 'config') carregarConfig();
+      if (view === 'ia') carregarSelectIA();
+      window.scrollTo(0,0);
+    }
+
+    function toggleSidebar(force) {
+      const s = document.getElementById('sidebar');
+      const o = document.getElementById('overlay');
+      const hidden = s.classList.contains('-translate-x-full');
+      const show = force !== undefined ? force : hidden;
+      s.classList.toggle('-translate-x-full', !show);
+      o.classList.toggle('hidden', !show);
+    }
+
+    // ===================== DASHBOARD =====================
+    function atualizarDashboard() {
+      const total = propostas.length;
+      const pendentes = propostas.filter(p => ['Pendente','Enviada','Em Negociação'].includes(p.status)).length;
+      const aprovadas = propostas.filter(p => p.status === 'Aprovada').length;
+      const valorAprovado = propostas.filter(p => p.status === 'Aprovada').reduce((a,p) => a + (p.items || []).reduce((s,i)=>s+(i.qtd*i.valor),0), 0);
+
+      document.getElementById('dash-total').textContent = total;
+      document.getElementById('dash-pendentes').textContent = pendentes;
+      document.getElementById('dash-aprovadas').textContent = aprovadas;
+      document.getElementById('dash-valor').textContent = formatCurrency(valorAprovado);
+
+      const recentes = [...propostas].sort((a,b) => new Date(b.data) - new Date(a.data)).slice(0,5);
+      const tbody = document.getElementById('dash-recentes');
+      tbody.innerHTML = recentes.map(p => `
+        <tr class="border-b border-white/5 hover:bg-white/5">
+          <td class="py-3">${getCliente(p.clienteId).nome}</td>
+          <td class="py-3">${p.servico}</td>
+          <td class="py-3">${statusBadge(p.status)}</td>
+          <td class="py-3 text-right font-semibold text-yellow-400">${formatCurrency((p.items||[]).reduce((s,i)=>s+(i.qtd*i.valor),0))}</td>
+        </tr>
+      `).join('');
+    }
+
+    function statusBadge(status) {
+      const map = {
+        'Pendente': 'bg-gray-500/20 text-gray-300',
+        'Enviada': 'bg-blue-500/20 text-blue-300',
+        'Em Negociação': 'bg-yellow-500/20 text-yellow-300',
+        'Aprovada': 'bg-green-500/20 text-green-300',
+        'Recusada': 'bg-red-500/20 text-red-300'
+      };
+      return `<span class="status-pill ${map[status] || map['Pendente']}">${status}</span>`;
+    }
+
+    // ===================== CONFIGURAÇÕES =====================
+    function carregarConfig() {
+      document.getElementById('cfg-nome').value = config.nome;
+      document.getElementById('cfg-logo').value = config.logo;
+      document.getElementById('cfg-cor').value = config.cor;
+      document.getElementById('cfg-cor-picker').value = config.cor;
+      document.getElementById('cfg-cor2').value = config.cor2;
+      document.getElementById('cfg-cor2-picker').value = config.cor2;
+      document.getElementById('cfg-contato').value = config.contato;
+    }
+
+    function salvarConfig(e) {
+      e.preventDefault();
+      config = {
+        nome: document.getElementById('cfg-nome').value,
+        logo: document.getElementById('cfg-logo').value,
+        cor: document.getElementById('cfg-cor').value,
+        cor2: document.getElementById('cfg-cor2').value,
+        contato: document.getElementById('cfg-contato').value
+      };
+      saveAll();
+      showToast('Configurações salvas!');
+    }
+
+    document.getElementById('cfg-cor-picker').addEventListener('input', e => document.getElementById('cfg-cor').value = e.target.value);
+    document.getElementById('cfg-cor2-picker').addEventListener('input', e => document.getElementById('cfg-cor2').value = e.target.value);
+    document.getElementById('cfg-cor').addEventListener('input', e => document.getElementById('cfg-cor-picker').value = e.target.value);
+    document.getElementById('cfg-cor2').addEventListener('input', e => document.getElementById('cfg-cor2-picker').value = e.target.value);
+
+    // ===================== CLIENTES CRUD =====================
+    function salvarCliente(e) {
+      e.preventDefault();
+      const id = document.getElementById('c-id').value || 'c-' + slug();
+      const cliente = {
+        id, nome: document.getElementById('c-nome').value,
+        contato: document.getElementById('c-contato').value,
+        doc: document.getElementById('c-doc').value,
+        telefone: document.getElementById('c-telefone').value,
+        email: document.getElementById('c-email').value,
+        cidade: document.getElementById('c-cidade').value,
+        segmento: document.getElementById('c-segmento').value
+      };
+      const idx = clientes.findIndex(c => c.id === id);
+      if (idx >= 0) clientes[idx] = cliente; else clientes.push(cliente);
+      saveAll();
+      renderClientes();
+      document.getElementById('form-cliente').reset();
+      document.getElementById('c-id').value = '';
+      showToast('Cliente salvo com sucesso!');
+    }
+
+    function renderClientes() {
+      const tbody = document.getElementById('lista-clientes');
+      tbody.innerHTML = clientes.map(c => `
+        <tr class="border-b border-white/5 hover:bg-white/5">
+          <td class="py-3">
+            <div class="font-medium text-yellow-100">${c.nome}</div>
+            <div class="text-xs text-white/50">${c.telefone || ''} ${c.email ? '• ' + c.email : ''}</div>
+          </td>
+          <td class="py-3">${c.cidade || '-'}</td>
+          <td class="py-3">${c.segmento || '-'}</td>
+          <td class="py-3 text-center">
+            <button onclick="editarCliente('${c.id}')" class="text-yellow-400 hover:text-yellow-300 mx-1"><i class="fas fa-edit"></i></button>
+            <button onclick="excluirCliente('${c.id}')" class="text-red-400 hover:text-red-300 mx-1"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function editarCliente(id) {
+      const c = clientes.find(x => x.id === id);
+      if (!c) return;
+      document.getElementById('c-id').value = c.id;
+      document.getElementById('c-nome').value = c.nome;
+      document.getElementById('c-contato').value = c.contato || '';
+      document.getElementById('c-doc').value = c.doc || '';
+      document.getElementById('c-telefone').value = c.telefone || '';
+      document.getElementById('c-email').value = c.email || '';
+      document.getElementById('c-cidade').value = c.cidade || '';
+      document.getElementById('c-segmento').value = c.segmento || '';
+    }
+
+    function excluirCliente(id) {
+      if (!confirm('Excluir cliente? Propostas vinculadas ficarão sem nome.')) return;
+      clientes = clientes.filter(c => c.id !== id);
+      saveAll();
+      renderClientes();
+      showToast('Cliente excluído.');
+    }
+
+    function carregarSelectClientes() {
+      const sel = document.getElementById('p-cliente');
+      sel.innerHTML = '<option value="">Selecione um cliente</option>' +
+        clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+    }
+
+    // ===================== ITENS =====================
+    function adicionarItem(dados = null) {
+      itemCount++;
+      const div = document.createElement('div');
+      div.className = 'item-row-app';
+      div.id = `item-${itemCount}`;
+      div.innerHTML = `
+        <div>
+          <label class="block text-xs text-yellow-100/70 mb-1">Descrição</label>
+          <input type="text" class="input-field item-desc" placeholder="Ex: Pneu 275/80 R22.5" value="${dados ? dados.descricao : ''}">
+        </div>
+        <div>
+          <label class="block text-xs text-yellow-100/70 mb-1">Qtd</label>
+          <input type="number" min="1" class="input-field item-qtd text-center" value="${dados ? dados.qtd : 1}">
+        </div>
+        <div>
+          <label class="block text-xs text-yellow-100/70 mb-1">Valor Unit.</label>
+          <input type="number" step="0.01" class="input-field item-valor text-right" placeholder="0,00" value="${dados ? dados.valor : ''}">
+        </div>
+        <button type="button" onclick="removerItem('item-${itemCount}')" class="text-red-400 hover:text-red-300 h-11"><i class="fas fa-trash"></i></button>
+      `;
+      document.getElementById('itens-container').appendChild(div);
+    }
+
+    function removerItem(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    function getItensForm() {
+      const itens = [];
+      document.querySelectorAll('#itens-container > div').forEach(div => {
+        const desc = div.querySelector('.item-desc').value.trim();
+        const qtd = parseInt(div.querySelector('.item-qtd').value) || 1;
+        const valor = parseFloat(div.querySelector('.item-valor').value) || 0;
+        if (desc) itens.push({ descricao: desc, qtd, valor });
+      });
+      return itens;
+    }
+
+    // ===================== PROPOSTAS CRUD =====================
+    function salvarProposta(e) {
+      e.preventDefault();
+      const itens = getItensForm();
+      if (itens.length === 0) { showToast('Adicione pelo menos um item.', 'fa-exclamation-circle'); return; }
+      const id = editandoPropostaId || 'p-' + slug();
+      const proposta = {
+        id, titulo: document.getElementById('p-titulo').value,
+        clienteId: document.getElementById('p-cliente').value,
+        tipo: document.getElementById('p-tipo').value,
+        servico: document.getElementById('p-servico').value,
+        prazo: document.getElementById('p-prazo').value,
+        pagamento: document.getElementById('p-pagamento').value,
+        validade: document.getElementById('p-validade').value,
+        status: document.getElementById('p-status').value,
+        abertura: document.getElementById('p-abertura').value,
+        descricao: document.getElementById('p-descricao').value,
+        obs: document.getElementById('p-obs').value,
+        data: new Date().toISOString(), items: itens
+      };
+      const idx = propostas.findIndex(p => p.id === id);
+      if (idx >= 0) propostas[idx] = proposta; else propostas.push(proposta);
+      saveAll();
+      editandoPropostaId = null;
+      showToast('Proposta salva com sucesso!');
+      router('propostas');
+    }
+
+    function limparFormProposta() {
+      editandoPropostaId = null;
+      document.getElementById('form-proposta').reset();
+      document.getElementById('itens-container').innerHTML = '';
+      document.getElementById('page-title').textContent = 'Nova Proposta';
+      adicionarItem();
+    }
+
+    function renderPropostas(lista = propostas) {
+      const tbody = document.getElementById('lista-propostas');
+      const empty = document.getElementById('empty-propostas');
+      if (!lista.length) { tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
+      empty.classList.add('hidden');
+      tbody.innerHTML = lista.map(p => {
+        const c = getCliente(p.clienteId);
+        const total = (p.items||[]).reduce((s,i)=>s+(i.qtd*i.valor),0);
+        return `
+        <tr class="border-b border-white/5 hover:bg-white/5">
+          <td class="py-3 px-2 font-mono text-yellow-400/80">${p.id.toUpperCase()}</td>
+          <td class="py-3 px-2">${c.nome}</td>
+          <td class="py-3 px-2">${p.tipo}</td>
+          <td class="py-3 px-2">${statusBadge(p.status)}</td>
+          <td class="py-3 px-2 text-right font-semibold">${formatCurrency(total)}</td>
+          <td class="py-3 px-2 text-center">
+            <button onclick="editarProposta('${p.id}')" class="text-yellow-400 hover:text-yellow-300 mx-1" title="Editar"><i class="fas fa-edit"></i></button>
+            <button onclick="verProposta('${p.id}')" class="text-blue-400 hover:text-blue-300 mx-1" title="Visualizar"><i class="fas fa-eye"></i></button>
+            <button onclick="gerarPDF('${p.id}')" class="text-green-400 hover:text-green-300 mx-1" title="Gerar PDF"><i class="fas fa-file-pdf"></i></button>
+            <button onclick="compartilharWhatsApp('${p.id}')" class="text-green-500 hover:text-green-400 mx-1" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>
+            <button onclick="compartilharEmail('${p.id}')" class="text-orange-400 hover:text-orange-300 mx-1" title="E-mail"><i class="fas fa-envelope"></i></button>
+            <button onclick="excluirProposta('${p.id}')" class="text-red-400 hover:text-red-300 mx-1" title="Excluir"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function filtrarPropostas() {
+      const q = document.getElementById('busca-proposta').value.toLowerCase();
+      const filtradas = propostas.filter(p => {
+        const c = getCliente(p.clienteId);
+        return (c.nome.toLowerCase().includes(q) || p.tipo.toLowerCase().includes(q) || p.servico.toLowerCase().includes(q) || p.status.toLowerCase().includes(q) || p.titulo.toLowerCase().includes(q));
+      });
+      renderPropostas(filtradas);
+    }
+
+    function editarProposta(id) {
+      const p = propostas.find(x => x.id === id);
+      if (!p) return;
+      editandoPropostaId = p.id;
+      carregarSelectClientes();
+      document.getElementById('p-titulo').value = p.titulo;
+      document.getElementById('p-cliente').value = p.clienteId;
+      document.getElementById('p-tipo').value = p.tipo;
+      document.getElementById('p-servico').value = p.servico;
+      document.getElementById('p-prazo').value = p.prazo;
+      document.getElementById('p-pagamento').value = p.pagamento;
+      document.getElementById('p-validade').value = p.validade;
+      document.getElementById('p-status').value = p.status;
+      document.getElementById('p-abertura').value = p.abertura || '';
+      document.getElementById('p-descricao').value = p.descricao;
+      document.getElementById('p-obs').value = p.obs;
+      document.getElementById('itens-container').innerHTML = '';
+      (p.items || []).forEach(i => adicionarItem(i));
+      router('nova-proposta');
+    }
+
+    function excluirProposta(id) {
+      if (!confirm('Confirma exclusão desta proposta?')) return;
+      propostas = propostas.filter(p => p.id !== id);
+      saveAll();
+      renderPropostas();
+      showToast('Proposta excluída.');
+    }
+
+    function verProposta(id) {
+      const p = propostas.find(x => x.id === id);
+      if (!p) return;
+      const c = getCliente(p.clienteId);
+      const total = (p.items||[]).reduce((s,i)=>s+(i.qtd*i.valor),0);
+      alert(`PROPOSTA ${p.id.toUpperCase()}\n\nCliente: ${c.nome}\nDocumento: ${p.tipo}\nServiço: ${p.servico}\nValor: ${formatCurrency(total)}\nStatus: ${p.status}\nPrazo: ${p.prazo}\nPagamento: ${p.pagamento}\n\nDescrição:\n${p.descricao || 'Não informado'}`);
+    }
+
+    // ===================== GERAR HTML DA PROPOSTA =====================
+    function buildPropostaHtml(p) {
+      const c = getCliente(p.clienteId);
+      const total = (p.items||[]).reduce((s,i)=>s+(i.qtd*i.valor),0);
+      const brand = config.cor || '#4a148c';
+      const brandDark = darken(brand, 30);
+      const gold = config.cor2 || '#ffd700';
+      const logoHtml = config.logo
+        ? `<img src="${config.logo}" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">`
+        : '';
+      const itemsRows = (p.items||[]).map((item, idx) => `
+        <tr>
+          <td class="prop-td-item">${String(idx+1).padStart(2,'0')}</td>
+          <td class="prop-td-desc">${item.descricao}</td>
+          <td class="prop-td-qtd">${item.qtd}</td>
+          <td class="prop-td-valor">${formatCurrency(item.valor)}</td>
+          <td class="prop-td-total">${formatCurrency(item.qtd * item.valor)}</td>
+        </tr>
+      `).join('');
+      return `
+<div class="prop-page" style="--prop-brand:${brand};--prop-brand-dark:${brandDark};--prop-gold:${gold};">
+  <div class="prop-cover">
+    <div class="prop-logo-chip">
+      ${logoHtml}
+      <div class="prop-fallback-logo" style="display:${config.logo?'none':'flex'}">${config.nome}</div>
+    </div>
+    <div class="prop-gold-rule"></div>
+    <h1>${p.tipo}</h1>
+    <p class="subtitle">Elaborada especialmente para <strong>${c.nome}</strong></p>
+  </div>
+  <div class="prop-content">
+    <div class="prop-section">
+      <div class="prop-section-header">
+        <div class="prop-section-number">01</div>
+        <h2 class="prop-section-title">Dados do Destinatário</h2>
+      </div>
+      <div class="prop-client-box">
+        <p><strong>${c.nome}</strong></p>
+        ${c.contato ? `<p>Att: ${c.contato}</p>` : ''}
+        ${c.doc ? `<p>CNPJ/CPF: ${c.doc}</p>` : ''}
+        ${c.cidade ? `<p>${c.cidade}</p>` : ''}
+        ${c.telefone ? `<p>${c.telefone}</p>` : ''}
+        ${c.email ? `<p>${c.email}</p>` : ''}
+      </div>
+    </div>
+    <div class="prop-section">
+      <div class="prop-section-header">
+        <div class="prop-section-number">02</div>
+        <h2 class="prop-section-title">Apresentação</h2>
+      </div>
+      <p class="prop-text">${p.abertura || 'Apresentamos nossa proposta comercial com as melhores condições para o seu negócio.'}</p>
+    </div>
+    <div class="prop-section">
+      <div class="prop-section-header">
+        <div class="prop-section-number">03</div>
+        <h2 class="prop-section-title">Investimento</h2>
+      </div>
+      <table class="prop-table">
+        <thead>
+          <tr>
+            <th class="prop-td-item">Item</th>
+            <th class="prop-td-desc">Descrição</th>
+            <th class="prop-td-qtd">Qtd</th>
+            <th class="prop-td-valor">Unitário</th>
+            <th class="prop-td-total">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsRows}
+          <tr class="prop-total-row">
+            <td colspan="4" style="text-align:right;padding-right:10px;">Total Geral</td>
+            <td class="prop-td-total">${formatCurrency(total)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="prop-section">
+      <div class="prop-section-header">
+        <div class="prop-section-number">04</div>
+        <h2 class="prop-section-title">Condições Comerciais</h2>
+      </div>
+      <div class="prop-info-grid">
+        <div class="prop-info-card"><h4>Pagamento</h4><p>${p.pagamento || 'À combinar'}</p></div>
+        <div class="prop-info-card"><h4>Prazo de Entrega</h4><p>${p.prazo || 'À combinar'}</p></div>
+        <div class="prop-info-card"><h4>Validade da Proposta</h4><p>${p.validade}</p></div>
+        <div class="prop-info-card"><h4>Data de Emissão</h4><p>${formatDate(p.data)}</p></div>
+      </div>
+      ${p.descricao ? `<div class="prop-obs"><h4>Descrição / Escopo</h4><p>${p.descricao}</p></div>` : ''}
+    </div>
+  </div>
+  <div class="prop-footer">
+    <p><strong>${config.nome}</strong> • ${config.contato}</p>
+    <p style="margin-top:3px;opacity:0.85;font-size:8pt;">Documento gerado em ${new Date().toLocaleDateString('pt-BR')} • Sem valor fiscal.</p>
+  </div>
+</div>
+<button class="prop-print-btn" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>`;
+    }
+
+    function previewFromForm() {
+      const form = document.getElementById('form-proposta');
+      if (!form.checkValidity()) { form.reportValidity(); return; }
+      const itens = getItensForm();
+      if (itens.length === 0) { showToast('Adicione pelo menos um item.', 'fa-exclamation-circle'); return; }
+      const p = {
+        id: 'preview', titulo: document.getElementById('p-titulo').value,
+        clienteId: document.getElementById('p-cliente').value,
+        tipo: document.getElementById('p-tipo').value,
+        servico: document.getElementById('p-servico').value,
+        prazo: document.getElementById('p-prazo').value,
+        pagamento: document.getElementById('p-pagamento').value,
+        validade: document.getElementById('p-validade').value,
+        status: document.getElementById('p-status').value,
+        abertura: document.getElementById('p-abertura').value,
+        descricao: document.getElementById('p-descricao').value,
+        data: new Date().toISOString(), items: itens
+      };
+      document.getElementById('previewContent').innerHTML = buildPropostaHtml(p);
+      document.getElementById('previewModal').classList.remove('hidden');
+    }
+
+    function fecharPreview() {
+      document.getElementById('previewModal').classList.add('hidden');
+      document.getElementById('previewContent').innerHTML = '';
+    }
+
+    function gerarPDF(id) {
+      const p = propostas.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('previewContent').innerHTML = buildPropostaHtml(p);
+      document.getElementById('previewModal').classList.remove('hidden');
+      showToast('Use o botão 🖨️ para salvar em PDF', 'fa-info-circle');
+    }
+
+    // ===================== COMPARTILHAMENTO =====================
+    function compartilharWhatsApp(id) {
+      const p = propostas.find(x => x.id === id);
+      const c = getCliente(p.clienteId);
+      const total = (p.items||[]).reduce((s,i)=>s+(i.qtd*i.valor),0);
+      const texto = `Olá ${c.contato || c.nome.split(' ')[0]},%0A%0AEnvio a ${p.tipo.toLowerCase()} *${p.titulo}* no valor de *${formatCurrency(total)}*.%0A%0AStatus: ${p.status}%0APrazo: ${p.prazo}%0APagamento: ${p.pagamento}%0A%0AAguardo seu retorno.`;
+      const numero = (c.telefone || '').replace(/\D/g,'');
+      window.open(`https://wa.me/${numero}?text=${texto}`, '_blank');
+    }
+
+    function compartilharEmail(id) {
+      const p = propostas.find(x => x.id === id);
+      const c = getCliente(p.clienteId);
+      const total = (p.items||[]).reduce((s,i)=>s+(i.qtd*i.valor),0);
+      const assunto = `${p.tipo} - ${p.titulo}`;
+      const corpo = `Prezado(a) ${c.nome},\n\nSegue nossa ${p.tipo.toLowerCase()}:\n\nTítulo: ${p.titulo}\nServiço: ${p.servico}\nValor: ${formatCurrency(total)}\nPrazo: ${p.prazo}\nPagamento: ${p.pagamento}\nValidade: ${p.validade}\n\nDescrição:\n${p.descricao || 'Não informado'}\n\nAguardamos seu retorno.\n\nAtenciosamente,\n${config.nome}`;
+      window.open(`mailto:${c.email || ''}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`, '_blank');
+    }
+
+    // ===================== ASSISTENTE IA =====================
+    function carregarSelectIA() {
+      const sel = document.getElementById('ia-proposta');
+      sel.innerHTML = '<option value="">Selecione uma proposta</option>' +
+        propostas.map(p => `<option value="${p.id}">${p.titulo} - ${getCliente(p.clienteId).nome}</option>`).join('');
+    }
+
+    function analisarPropostaIA() {
+      const id = document.getElementById('ia-proposta').value;
+      const box = document.getElementById('ia-resultado');
+      if (!id) { showToast('Selecione uma proposta primeiro.', 'fa-exclamation-circle'); return; }
+      const p = propostas.find(x => x.id === id);
+      const c = getCliente(p.clienteId);
+      const total = (p.items||[]).reduce((s,i)=>s+(i.qtd*i.valor),0);
+      const sugestoes = [];
+      if (total < 3000) sugestoes.push('Valor abaixo de R$ 3.000 — considere pacotes mensais para aumentar o ticket médio.');
+      if (total > 20000) sugestoes.push('Valor alto — inclua case studies e garantias para reduzir percepção de risco.');
+      if (!p.descricao || p.descricao.length < 80) sugestoes.push('Descrição muito curta. Detalhe entregáveis, cronograma e diferenciais.');
+      if (p.status === 'Pendente') sugestoes.push('Proposta ainda pendente. Envie em até 24h e programe follow-up para 3 dias.');
+      if (p.status === 'Em Negociação') sugestoes.push('Em negociação: prepare contrapartidas e pacotes alternativos.');
+      if (c.segmento === 'Pneus/Auto') sugestoes.push('Segmento de pneus/automotivo: destaque garantia, prazo de entrega e logística.');
+      if (p.pagamento === 'À vista') sugestoes.push('Pagamento à vista: ofereça pequeno desconto para conversão rápida.');
+      const markup = total * 1.3;
+      box.innerHTML = `
+        <div class="p-4 rounded-xl bg-violet-900/50 border border-yellow-400/20">
+          <h4 class="font-bold text-yellow-400 mb-2">Resumo da Análise</h4>
+          <p class="text-sm text-white/80">${p.tipo} <strong>${p.titulo}</strong> para <strong>${c.nome}</strong> no valor de <strong>${formatCurrency(total)}</strong>.</p>
+        </div>
+        <div class="p-4 rounded-xl bg-violet-900/50 border border-yellow-400/20">
+          <h4 class="font-bold text-yellow-400 mb-2">Sugestões</h4>
+          <ul class="text-sm text-white/80 list-disc list-inside space-y-1">${sugestoes.map(s => `<li>${s}</li>`).join('')}</ul>
+        </div>
+        <div class="p-4 rounded-xl bg-violet-900/50 border border-yellow-400/20">
+          <h4 class="font-bold text-yellow-400 mb-2">Precificação com 30% de margem</h4>
+          <p class="text-sm text-white/80">Preço sugerido: <strong class="text-green-400">${formatCurrency(markup)}</strong></p>
+        </div>
+      `;
+      box.classList.remove('hidden');
+    }
+
+    function gerarTextoIA() {
+      const tipo = document.getElementById('ia-tipo-texto').value;
+      const nome = document.getElementById('ia-cliente-nome').value || 'Cliente';
+      const servico = document.getElementById('ia-servico-nome').value || 'nosso serviço';
+      const box = document.getElementById('ia-texto-resultado');
+      const templates = {
+        apresentacao: `Olá ${nome},\n\nEspero que esteja bem. Meu nome é Osmar e gostaria de apresentar nossa solução de ${servico}, desenvolvida especialmente para empresas como a sua.\n\nNossa proposta é aumentar sua eficiência comercial, organizar processos e entregar resultados mensuráveis em curto prazo.\n\nPodemos agendar uma conversa de 15 minutos esta semana?\n\nAbraços,`,
+        followup: `Oi ${nome},\n\nPassando para saber se você teve tempo de analisar nossa proposta de ${servico}.\n\nFico à disposição para esclarecer qualquer ponto e ajustar os detalhes conforme sua necessidade.\n\nQual a melhor data para conversarmos?`,
+        objecao: `Olá ${nome},\n\nEntendo que o investimento é um fator importante. Por isso, gostaria de reforçar que o retorno esperado com ${servico} costuma superar o custo já nos primeiros meses.\n\nPodemos dividir o pagamento ou ajustar o escopo para caber no seu orçamento. Que tal conversarmos?`,
+        whatsapp: `Olá ${nome}! Tudo bem? 😊\n\nSegue nossa proposta de ${servico}. Acredito que vai fazer muito sentido para os seus resultados.\n\nMe diga quando podemos conversar para alinharmos os detalhes.`
+      };
+      box.textContent = templates[tipo];
+      box.classList.remove('hidden');
+    }
+
+    // ===================== INICIALIZAÇÃO =====================
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    saveAll();
+    adicionarItem();
+    router('dashboard');
+  </script>
+</body>
+</html>
